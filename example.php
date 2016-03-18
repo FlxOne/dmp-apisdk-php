@@ -9,5 +9,6 @@ use request\Request;
 
 
 $config = Config::getDefault();
+$config->setCredentials('USER', 'PASSWORD');
 $client = new Client($config);
 $client->get(new Request('user/current'));

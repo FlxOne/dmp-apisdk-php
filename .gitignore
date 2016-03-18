@@ -1,5 +1,4 @@
 # IntelliJ project files
 .idea
 *.iml
-credentials.php
 vendor/

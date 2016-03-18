@@ -13,7 +13,6 @@ require 'AbstractConfig.php';
 class Config extends AbstractConfig implements IConfig
 {
     public static function getDefault() {
-        $credentials = include('credentials.php');
         $conf = new Config();
         $conf->setCredentials($credentials['username'], $credentials['password']);
         $conf->setEndpoint('https://platform.flxone.com/api/v2');
