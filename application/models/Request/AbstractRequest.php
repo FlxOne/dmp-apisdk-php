@@ -24,7 +24,9 @@ abstract class AbstractRequest implements IRequest
     }
 
     function setParameters(array $parameters) {
-        $this->parameters = $parameters;
+        foreach ($parameters as $key => $value) {
+            $this->setParameter($key, $value);
+        }
     }
 
     function getParameters() {
