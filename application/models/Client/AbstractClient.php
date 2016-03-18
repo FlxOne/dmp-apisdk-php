@@ -51,7 +51,7 @@ abstract class AbstractClient implements IClient
         if (strpos(strtolower($req->getUri()), 'auth') === false) {
             if (empty($this->authToken) || empty($this->csrfToken)) {
                 if (!$this->authenticate()) {
-                    throw new ClientException("Failed to authenticate");
+                    throw new ClientException(new Exception('Failed to authenticate'));
                 }
             }
         }
@@ -94,7 +94,7 @@ abstract class AbstractClient implements IClient
             );
             return $this->execute($req);
         } catch (Exception $ex) {
-
+            throw new ClientException($ex);
         }
     }
 
@@ -107,7 +107,7 @@ abstract class AbstractClient implements IClient
             );
             return $this->execute($req);
         } catch (Exception $ex) {
-
+            throw new ClientException($ex);
         }
     }
 
@@ -120,7 +120,7 @@ abstract class AbstractClient implements IClient
             );
             return $this->execute($req);
         } catch (Exception $ex) {
-
+            throw new ClientException($ex);
         }
     }
 
@@ -133,7 +133,7 @@ abstract class AbstractClient implements IClient
             );
             return $this->execute($req);
         } catch (Exception $ex) {
-
+            throw new ClientException($ex);
         }
     }
 
