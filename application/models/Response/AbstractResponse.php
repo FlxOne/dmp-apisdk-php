@@ -7,13 +7,14 @@
  */
 
 namespace response;
-
+require 'IResponse.php';
+require 'ResponseStatus.php';
 
 abstract class AbstractResponse implements IResponse
 {
     private $jsonOuterResponseObject;
 
-    public function __construct(String $json) {
+    public function __construct($json) {
         $this->jsonOuterResponseObject = json_decode($json, true);
     }
 
@@ -32,11 +33,11 @@ abstract class AbstractResponse implements IResponse
         return $this->jsonOuterResponseObject['response'];
     }
 
-    function has(String $memberName) {
+    function has($memberName) {
         return isset($this->getResponseObject()[$memberName]);
     }
 
-    function get(String $memberName) {
+    function get($memberName) {
         if ($this->has($memberName)) {
             return $this->getResponseObject()[$memberName];
         }

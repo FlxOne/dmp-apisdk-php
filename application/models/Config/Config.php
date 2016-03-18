@@ -14,7 +14,6 @@ class Config extends AbstractConfig implements IConfig
 {
     public static function getDefault() {
         $conf = new Config();
-        $conf->setCredentials($credentials['username'], $credentials['password']);
         $conf->setEndpoint('https://platform.flxone.com/api/v2');
         $conf->setMaxRetries(5);
         return $conf;

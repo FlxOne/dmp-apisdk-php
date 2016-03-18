@@ -6,15 +6,15 @@
  * Time: 16:31
  */
 namespace client;
-require 'vendor/autoload.php';
 require 'IClient.php';
-
 
 use config\IConfig;
 use exception\ClientException;
 use GuzzleHttp;
 use Logger;
 use request\Request;
+use response\Response;
+use response\ResponseStatus;
 
 abstract class AbstractClient implements IClient
 {
@@ -32,17 +32,17 @@ abstract class AbstractClient implements IClient
     }
 
     protected function authenticate() {
-        $req = new Request('auth');
-        $req->setParameter('username', $this->config->getUsername());
-        $req->setParameter('password', $this->config->getPassword());
-        $resp = $this->post($req);
+        $request = new Request('auth');
+        $request->setParameter('username', $this->config->getUsername());
+        $request->setParameter('password', $this->config->getPassword());
+        $response = $this->post($request);
         // @todo: check if $response is null
-        if ($resp === null) {
+        if ($response === null) {
             return false;
         }
 
-        $this->authToken = $resp->get('token');
-        $this->csrfToken = $resp->getCsrfToken();
+        $this->authToken = $response->get('token');
+        $this->csrfToken = $response->getCsrfToken();
         return true;
     }
 
@@ -56,9 +56,9 @@ abstract class AbstractClient implements IClient
             }
         }
 
-        $req->withAddedHeader('X-Auth', $this->authToken);
-        $req->withAddedHeader('X-CSRF', $this->csrfToken);
-        $req->withHeader('Content-Type', 'application/json');
+
+        $req = $req->withAddedHeader('X-Auth', $this->authToken);
+        $req = $req->withAddedHeader('X-CSRF', $this->csrfToken);
 
         $response = null;
         $resp = null;
@@ -72,13 +72,13 @@ abstract class AbstractClient implements IClient
                     continue;
                 }
 
-                $response = new Reponse($resp->getBody());
-                if ($response->getStatus() === ResponseStatus . OK) {
+                $response = new Response($resp->getBody()->getContents());
+                if ($response->getStatus() === ResponseStatus::OK) {
                     // Stop retrying
                     break;
                 }
             } catch (Exception $ex) {
-                sleep((1000 * $i * $i) + rand(100));
+                sleep((1000 * $i * $i) + rand(0, 100));
             }
         }
         return $response;
@@ -87,12 +87,11 @@ abstract class AbstractClient implements IClient
 
     function get($request) {
         try {
+            $uri = $this->getURIForRequest($request);
             $req = new GuzzleHttp\Psr7\Request(
                 'GET',
-                $this->config->getEndpoint() . '/' . $request->getService(),
-                array(
-                    'query' => $request->getParameters()
-                ));
+                $uri
+            );
             return $this->execute($req);
         } catch (Exception $ex) {
 
@@ -101,8 +100,11 @@ abstract class AbstractClient implements IClient
 
     function put($request) {
         try {
-            $req = $this->client->put();
-            $req->setBody($request->getParameters());
+            $uri = $this->getURIForRequest($request);
+            $req = new GuzzleHttp\Psr7\Request(
+                'PUT',
+                $uri
+            );
             return $this->execute($req);
         } catch (Exception $ex) {
 
@@ -111,8 +113,11 @@ abstract class AbstractClient implements IClient
 
     function delete($request) {
         try {
-            $req = $this->client->delete();
-            $req->setBody($request->getParameters());
+            $uri = $this->getURIForRequest($request);
+            $req = new GuzzleHttp\Psr7\Request(
+                'DELETE',
+                $uri
+            );
             return $this->execute($req);
         } catch (Exception $ex) {
 
@@ -121,15 +126,22 @@ abstract class AbstractClient implements IClient
 
     function post($request) {
         try {
+            $uri = $this->getURIForRequest($request);
             $req = new GuzzleHttp\Psr7\Request(
                 'POST',
-                $this->config->getEndpoint() . '/' . $request->getService(),
-                array(
-                    'json' => $request->getParameters()
-                ));
+                $uri
+            );
             return $this->execute($req);
         } catch (Exception $ex) {
 
         }
+    }
+
+    protected function getURIForRequest($request) {
+        $uri = new GuzzleHttp\Psr7\Uri($this->config->getEndpoint() . '/' . $request->getService());
+        foreach ($request->getParameters() as $key => $value) {
+            $uri = $uri->withQueryValue($uri, $key, $value);
+        }
+        return $uri;
     }
 }

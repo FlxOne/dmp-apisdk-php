@@ -2,3 +2,5 @@
 .idea
 *.iml
 vendor/
+composer.lock
+composer.phar

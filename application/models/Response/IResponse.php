@@ -11,8 +11,8 @@ namespace response;
 
 interface IResponse
 {
-    function has(String $memberName);
-    function get(String $memberName);
+    function has($memberName);
+    function get($memberName);
     function getCsrfToken();
 
 }
