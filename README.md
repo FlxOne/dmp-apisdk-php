@@ -1,2 +1,2 @@
 # dmp-apisdk-php
-JavaScript SDK for the TeraData DMP API
+PHP SDK for the Teradata DMP API
