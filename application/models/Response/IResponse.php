@@ -8,5 +8,4 @@ interface IResponse
     function get($memberName);
 
     function getCsrfToken();
-
 }

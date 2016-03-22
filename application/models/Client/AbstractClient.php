@@ -12,7 +12,6 @@ use response\ResponseStatus;
 
 abstract class AbstractClient implements IClient
 {
-
     /** The Guzzle HTTP Client */
     protected $client;
 
@@ -48,11 +47,9 @@ abstract class AbstractClient implements IClient
         $request->setParameter('username', $this->config->getUsername());
         $request->setParameter('password', $this->config->getPassword());
         $response = $this->post($request);
-        // @todo: check if $response is null
         if ($response === null) {
             return false;
         }
-
         $this->authToken = $response->get('token');
         $this->csrfToken = $response->getCsrfToken();
         return true;
@@ -74,8 +71,6 @@ abstract class AbstractClient implements IClient
                 }
             }
         }
-
-
         $req = $req->withAddedHeader('X-Auth', $this->authToken);
         $req = $req->withAddedHeader('X-CSRF', $this->csrfToken);
 
@@ -90,7 +85,6 @@ abstract class AbstractClient implements IClient
                     $this->authenticate();
                     continue;
                 }
-
                 $response = new Response($resp->getBody()->getContents());
                 if ($response->getStatus() === ResponseStatus::OK) {
                     // Stop retrying
@@ -101,7 +95,6 @@ abstract class AbstractClient implements IClient
             }
         }
         return $response;
-
     }
 
     /**

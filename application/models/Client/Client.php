@@ -4,5 +4,4 @@ require 'AbstractClient.php';
 
 class Client extends AbstractClient implements IClient
 {
-
 }
