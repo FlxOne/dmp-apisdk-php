@@ -7,6 +7,7 @@ require 'application/models/Response/Response.php';
 
 use client\Client;
 use config\Config;
+use exception\ClientException;
 use request\Request;
 
 // Create the config
@@ -19,4 +20,8 @@ $config->setCredentials('MY_USERNAME', 'MY_PASSWORD');
 $client = new Client($config);
 
 // Execute a GET request to user/current
-$client->get(new Request('user/current'));
+try {
+    $client->get(new Request('user/current'));
+} catch (ClientException $ex) {
+    echo 'An exception has occurred when executing this request: ' . $ex->getMessage();
+}

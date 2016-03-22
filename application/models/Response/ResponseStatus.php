@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by IntelliJ IDEA.
- * User: pv186013
- * Date: 18/03/16
- * Time: 09:29
- */
-
 namespace response;
 
 abstract class ResponseStatus

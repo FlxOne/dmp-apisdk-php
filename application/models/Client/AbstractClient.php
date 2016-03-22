@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by IntelliJ IDEA.
- * User: pv186013
- * Date: 17/03/16
- * Time: 16:31
- */
 namespace client;
 require 'IClient.php';
 
@@ -19,18 +13,36 @@ use response\ResponseStatus;
 abstract class AbstractClient implements IClient
 {
 
+    /** The Guzzle HTTP Client */
     protected $client;
+
+    /** @var IConfig The given Config */
     protected $config;
+
+    /** @var The Authentication Token */
     protected $authToken = null;
+
+    /** @var The CSRF Token */
     protected $csrfToken = null;
+
+    /** @var Logger The Log4PHP Logger */
     private static $logger;
 
+    /**
+     * Creates the client from a given Config. Instantiates the logger for logging purposes.
+     * @param IConfig $config
+     */
     public function __construct(IConfig $config) {
         $this->logger = Logger::getLogger('main');
         $this->client = new GuzzleHttp\Client();
         $this->config = $config;
     }
 
+    /**
+     * Execute a POST request to authenticate the user. Returns true if authentication was successful.
+     * @return bool
+     * @throws ClientException
+     */
     protected function authenticate() {
         $request = new Request('auth');
         $request->setParameter('username', $this->config->getUsername());
@@ -46,6 +58,13 @@ abstract class AbstractClient implements IClient
         return true;
     }
 
+    /**
+     * Execute the Guzzle HTTP Request with exponential backoff.
+     * Authenticate if not authenticated. Adds the required CSRF and Auth tokens in the headers.
+     * @param $req
+     * @return null|Response
+     * @throws ClientException
+     */
     protected function execute($req) {
         $this->logger->info(sprintf('Executing %s request to %s', $req->getMethod(), $req->getUri()));
         if (strpos(strtolower($req->getUri()), 'auth') === false) {
@@ -85,6 +104,12 @@ abstract class AbstractClient implements IClient
 
     }
 
+    /**
+     * Create a Guzzle HTTP GET Request and execute it. Parameters are set as URL parameters.
+     * @param $request
+     * @return null|Response
+     * @throws ClientException
+     */
     function get($request) {
         try {
             $uri = $this->getURIForRequest($request);
@@ -98,12 +123,19 @@ abstract class AbstractClient implements IClient
         }
     }
 
+    /**
+     * Create a Guzzle HTTP PUT Request and execute it. Parameters are set as url-form-encoded body parameters.
+     * @param $request
+     * @return null|Response
+     * @throws ClientException
+     */
     function put($request) {
         try {
-            $uri = $this->getURIForRequest($request);
             $req = new GuzzleHttp\Psr7\Request(
                 'PUT',
-                $uri
+                $this->config->getEndpoint() . '/' . $request->getService(),
+                [],
+                http_build_query($request->getParameters(), null, '&')
             );
             return $this->execute($req);
         } catch (Exception $ex) {
@@ -111,6 +143,12 @@ abstract class AbstractClient implements IClient
         }
     }
 
+    /**
+     * Create a Guzzle HTTP DELETE Request and execute it. Parameters are set as URL parameters.
+     * @param $request
+     * @return null|Response
+     * @throws ClientException
+     */
     function delete($request) {
         try {
             $uri = $this->getURIForRequest($request);
@@ -124,12 +162,19 @@ abstract class AbstractClient implements IClient
         }
     }
 
+    /**
+     * Create a Guzzle HTTP POST Request and execute it. Parameters are set as url-form-encoded body parameters.
+     * @param $request
+     * @return null|Response
+     * @throws ClientException
+     */
     function post($request) {
         try {
-            $uri = $this->getURIForRequest($request);
             $req = new GuzzleHttp\Psr7\Request(
                 'POST',
-                $uri
+                $this->config->getEndpoint() . '/' . $request->getService(),
+                [],
+                http_build_query($request->getParameters(), null, '&')
             );
             return $this->execute($req);
         } catch (Exception $ex) {
@@ -137,6 +182,11 @@ abstract class AbstractClient implements IClient
         }
     }
 
+    /**
+     * Create a URI with URL parameters from the given Request object
+     * @param $request
+     * @return GuzzleHttp\Psr7\Uri|\Psr\Http\Message\UriInterface
+     */
     protected function getURIForRequest($request) {
         $uri = new GuzzleHttp\Psr7\Uri($this->config->getEndpoint() . '/' . $request->getService());
         foreach ($request->getParameters() as $key => $value) {
